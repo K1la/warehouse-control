@@ -7,8 +7,8 @@ import (
 	"github.com/K1la/warehouse-control/internal/api/server"
 	"github.com/K1la/warehouse-control/internal/config"
 	"github.com/K1la/warehouse-control/internal/repository"
-	analyticsRepo "github.com/K1la/warehouse-control/internal/repository/analytics"
-	itemRepo "github.com/K1la/warehouse-control/internal/repository/items"
+	itemRepo "github.com/K1la/warehouse-control/internal/repository/item"
+	analyticsRepo "github.com/K1la/warehouse-control/internal/repository/user"
 	analyticsService "github.com/K1la/warehouse-control/internal/service/analytics"
 	itemService "github.com/K1la/warehouse-control/internal/service/items"
 

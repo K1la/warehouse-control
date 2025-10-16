@@ -1,5 +1,7 @@
 package dto
 
+import "time"
+
 type CreateItemRequest struct {
 	Name        string `json:"name" binding:"required"`
 	Description string `json:"description"`
@@ -13,8 +15,9 @@ type UpdateItemRequest struct {
 }
 
 type ItemResponse struct {
-	ID          int64  `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Quantity    int    `json:"quantity"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	Quantity    int       `json:"quantity"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }

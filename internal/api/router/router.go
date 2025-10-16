@@ -1,35 +1,48 @@
 package router
 
 import (
+	"github.com/K1la/warehouse-control/internal/middleware"
 	"net/http"
 	"path/filepath"
 	"strings"
 
-	"github.com/K1la/warehouse-control/internal/api/handlers/items"
-	"github.com/K1la/warehouse-control/internal/api/handlers/user"
+	auditH "github.com/K1la/warehouse-control/internal/api/handlers/audit"
+	authH "github.com/K1la/warehouse-control/internal/api/handlers/auth"
+	itemH "github.com/K1la/warehouse-control/internal/api/handlers/items"
 
 	"github.com/wb-go/wbf/ginext"
 )
 
-func New(ih *items.Handler, ah *user.Handler) *ginext.Engine {
+func New(itH *itemH.Handler, atH *authH.Handler, auditH *auditH.Handler, authMw *middleware.AuthMW) *ginext.Engine {
 	e := ginext.New("")
 	e.Use(ginext.Recovery(), ginext.Logger())
 
 	// API routes
 	api := e.Group("/api")
 	{
-		itemsGroup := api.Group("/items")
+		// Auth routes
+		authGroup := api.Group("/auth")
 		{
-			itemsGroup.POST("", ih.Create)
-			itemsGroup.GET("", ih.GetAll)
-			itemsGroup.GET("/:id", ih.GetByID)
-			itemsGroup.PUT("/:id", ih.Update)
-			itemsGroup.DELETE("/:id", ih.Delete)
+			authGroup.POST("/login", atH.Login)
+			authGroup.POST("/register", atH.Register)
 		}
 
-		analyticsGroup := api.Group("/user")
+		// Audit routes
+		auditGroup := api.Group("/audit")
+		auditGroup.Use(authMw.RequireAuth())
 		{
-			analyticsGroup.GET("", ah.GetAnalytics)
+			auditGroup.GET("", auditH.GetHistory)
+			auditGroup.GET("/export", authMw.RequireRole("admin", "manager"), auditH.ExportHistoryCSV)
+		}
+
+		// Items routes
+		itemsGroup := api.Group("/items")
+		{
+			itemsGroup.GET("", itH.GetAll)
+			itemsGroup.GET("/:id", itH.GetByID)
+			itemsGroup.POST("", authMw.RequireRole("admin", "manager"), itH.Create)
+			itemsGroup.PUT("/:id", authMw.RequireRole("admin", "manager"), itH.Update)
+			itemsGroup.DELETE("/:id", authMw.RequireRole("admin"), itH.Delete)
 		}
 	}
 
