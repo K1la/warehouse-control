@@ -1,0 +1,14 @@
+http_server:
+  address: ":8080"
+  timeout: 10
+  idle_timeout: 30
+
+postgres:
+  host: "db"
+  port: "5432"
+  user: "postgres"
+  name: "warehouse-control"
+  password: "" # set via .env DB_PASSWORD
+
+jwt:
+  ttl: "24h"
