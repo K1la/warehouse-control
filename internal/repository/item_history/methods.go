@@ -1,7 +1,8 @@
-package user
+package item_history
 
 import (
 	"context"
+
 	"github.com/K1la/warehouse-control/internal/model"
 )
 

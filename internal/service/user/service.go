@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+
 	"github.com/K1la/warehouse-control/internal/model"
 	jwtpkg "github.com/K1la/warehouse-control/pkg/jwt"
 
@@ -14,8 +15,8 @@ type Service struct {
 	log zerolog.Logger
 }
 
-func New(d Repo, l zerolog.Logger) *Service {
-	return &Service{db: d, log: l}
+func New(d Repo, jwt *jwtpkg.JWT, l zerolog.Logger) *Service {
+	return &Service{db: d, j: jwt, log: l}
 }
 
 type Repo interface {

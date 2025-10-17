@@ -1,4 +1,4 @@
-package user
+package item_history
 
 import (
 	"github.com/rs/zerolog"

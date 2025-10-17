@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+
 	"github.com/K1la/warehouse-control/internal/model"
 )
 
@@ -25,7 +26,7 @@ func (r *Postgres) SetCurrentUser(ctx context.Context, userID int64) error {
 func (r *Postgres) Create(ctx context.Context, item model.Item) (int64, error) {
 	query := `
 	INSERT INTO items
-	(name, descriptions, quantity)
+	(name, description, quantity)
 	VALUES ($1, $2, $3)
 	RETURNING id
 	`
@@ -104,22 +105,46 @@ func (r *Postgres) Update(ctx context.Context, item model.Item) error {
 	UPDATE items
 	SET name = $1,
 	    description = $2,
-	    quantity = $3
+	    quantity = $3,
+	    updated_at = NOW()
 	WHERE id = $4
 	`
-	_, err := r.db.ExecContext(ctx, query,
+	result, err := r.db.ExecContext(ctx, query,
 		item.Name,
 		item.Description,
 		item.Quantity,
 		item.ID,
 	)
-	if errors.Is(err, sql.ErrNoRows) {
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
 		return ErrItemNotFound
 	}
-	return err
+
+	return nil
 }
 
 func (r *Postgres) Delete(ctx context.Context, itemID int64) error {
-	_, err := r.db.ExecContext(ctx, `DELETE FROM items WHERE id = $1`, itemID)
-	return err
+	result, err := r.db.ExecContext(ctx, `DELETE FROM items WHERE id = $1`, itemID)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrItemNotFound
+	}
+
+	return nil
 }

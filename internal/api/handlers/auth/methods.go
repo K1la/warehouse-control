@@ -1,12 +1,13 @@
-package items
+package auth
 
 import (
 	"errors"
+	"net/http"
+
 	"github.com/K1la/warehouse-control/internal/dto"
 	serviceuser "github.com/K1la/warehouse-control/internal/service/user"
 	"github.com/wb-go/wbf/ginext"
 	"github.com/wb-go/wbf/zlog"
-	"net/http"
 )
 
 // POST /api/auth/login

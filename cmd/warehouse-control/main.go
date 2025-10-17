@@ -1,21 +1,27 @@
 package main
 
 import (
+	auditHandler "github.com/K1la/warehouse-control/internal/api/handlers/audit"
+	authHandler "github.com/K1la/warehouse-control/internal/api/handlers/auth"
 	itemHandler "github.com/K1la/warehouse-control/internal/api/handlers/items"
-	userHandler "github.com/K1la/warehouse-control/internal/api/handlers/user"
 	"github.com/K1la/warehouse-control/internal/api/router"
 	"github.com/K1la/warehouse-control/internal/api/server"
 	"github.com/K1la/warehouse-control/internal/config"
+	"github.com/K1la/warehouse-control/internal/middleware"
 	"github.com/K1la/warehouse-control/internal/repository"
 	itemRepo "github.com/K1la/warehouse-control/internal/repository/item"
-	analyticsRepo "github.com/K1la/warehouse-control/internal/repository/user"
-	analyticsService "github.com/K1la/warehouse-control/internal/service/analytics"
+	auditRepo "github.com/K1la/warehouse-control/internal/repository/item_history"
+	authRepo "github.com/K1la/warehouse-control/internal/repository/user"
+	auditService "github.com/K1la/warehouse-control/internal/service/audit"
 	itemService "github.com/K1la/warehouse-control/internal/service/items"
+	authService "github.com/K1la/warehouse-control/internal/service/user"
+	jwtpkg "github.com/K1la/warehouse-control/pkg/jwt"
 
-	"github.com/wb-go/wbf/zlog"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/wb-go/wbf/zlog"
 )
 
 func main() {
@@ -23,22 +29,28 @@ func main() {
 	zlog.InitConsole()
 	// присваиваем глобальный логгер
 	lg := zlog.Logger
+	lg.Info().Msg("Starting Warehouse Control")
 
 	cfg := config.Init()
 
-	// TODO: доделать инициализацию
 	db := repository.NewDB(cfg)
 
 	repoItem := itemRepo.New(db, lg)
-	repoAnalytics := analyticsRepo.New(db, lg)
+	repoAudit := auditRepo.New(db, lg)
+	repoAuth := authRepo.New(db, lg)
+
+	jwt := jwtpkg.New(cfg.JWT.Secret, cfg.JWT.TTL)
+	authMw := middleware.NewAuth(jwt)
 
 	serviceItem := itemService.New(repoItem, lg)
-	serviceAnalytics := analyticsService.New(repoAnalytics, lg)
+	serviceAudit := auditService.New(repoAudit, lg)
+	serviceAuth := authService.New(repoAuth, jwt, lg)
 
 	handlerItem := itemHandler.New(serviceItem, lg)
-	handlerAnalytics := analyticsHandler.New(serviceAnalytics, lg)
+	handlerAudit := auditHandler.New(serviceAudit, lg)
+	handlerAuth := authHandler.New(serviceAuth, lg)
 
-	r := router.New(handlerItem, handlerAnalytics)
+	r := router.New(handlerItem, handlerAuth, handlerAudit, authMw)
 	s := server.New(cfg.HTTPServer.Address, r)
 
 	//ctx, cancel := context.WithCancel(context.Background())

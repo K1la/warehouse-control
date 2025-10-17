@@ -1,7 +1,8 @@
-package items
+package auth
 
 import (
 	"context"
+
 	"github.com/K1la/warehouse-control/internal/dto"
 	"github.com/rs/zerolog"
 )

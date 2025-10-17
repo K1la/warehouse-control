@@ -1,7 +1,8 @@
-package items
+package audit
 
 import (
 	"context"
+
 	"github.com/K1la/warehouse-control/internal/model"
 	"github.com/rs/zerolog"
 )

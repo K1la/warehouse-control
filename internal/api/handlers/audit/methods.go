@@ -1,27 +1,28 @@
-package items
+package audit
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/wb-go/wbf/ginext"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/wb-go/wbf/ginext"
 )
 
-// // GET /api/audit ?item_id (optional)
+// GET /api/audit ?item_id (optional)
 func (h *Handler) GetHistory(c *ginext.Context) {
 	if v := c.Query("item_id"); v != "" {
 		id, _ := strconv.ParseInt(v, 10, 64)
 
-		item, err := h.service.ListByID(c.Request.Context(), id)
+		items, err := h.service.ListByID(c.Request.Context(), id)
 		if err != nil {
 			h.log.Error().Err(err).Str("item_id", v).Msg("failed to get item history")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		c.JSON(http.StatusOK, item)
+		c.JSON(http.StatusOK, items)
 		return
 	}
 	items, err := h.service.ListAll(c.Request.Context())
@@ -34,7 +35,7 @@ func (h *Handler) GetHistory(c *ginext.Context) {
 }
 
 // GET /api/audit/export
-func (h *Handler) ExportHistoryCSV(c *gin.Context) {
+func (h *Handler) ExportHistoryCSV(c *ginext.Context) {
 	// minimal CSV export
 	out, err := h.service.ListAll(c.Request.Context())
 	if err != nil {
