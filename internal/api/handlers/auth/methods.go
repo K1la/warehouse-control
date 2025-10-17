@@ -3,6 +3,7 @@ package items
 import (
 	"errors"
 	"github.com/K1la/warehouse-control/internal/dto"
+	serviceuser "github.com/K1la/warehouse-control/internal/service/user"
 	"github.com/wb-go/wbf/ginext"
 	"github.com/wb-go/wbf/zlog"
 	"net/http"
@@ -26,7 +27,7 @@ func (h *Handler) Login(c *ginext.Context) {
 			return
 		}
 
-		if errors.Is(err, repouser.ErrUserNotFound) {
+		if errors.Is(err, serviceuser.ErrUserNotFound) {
 			h.log.Error().Err(err).Msg("user not found")
 			c.JSON(http.StatusNotFound, ginext.H{"error": "user not found"})
 			return

@@ -2,7 +2,6 @@ package items
 
 import (
 	"context"
-	"github.com/K1la/warehouse-control/internal/dto"
 	"github.com/K1la/warehouse-control/internal/model"
 	"github.com/rs/zerolog"
 )
@@ -17,17 +16,10 @@ func New(d Repo, l zerolog.Logger) *Service {
 }
 
 type Repo interface {
-	Create(ctx context.Context, req *model.Item) error
-	GetAll(ctx context.Context) ([]dto.ItemResponse, error)
-	GetByID(ctx context.Context, id string) (*dto.ItemResponse, error)
-	Update(ctx context.Context, req *dto.ItemResponse) error
-	Delete(ctx context.Context, id string) error
-}
-
-type Service interface {
-	Create(ctx context.Context, req dto.CreateItemRequest) (*dto.ItemResponse, error)
-	GetAll(ctx context.Context) ([]dto.ItemResponse, error)
-	GetByID(ctx context.Context, id string) (*dto.ItemResponse, error)
-	Update(ctx context.Context, id string, req dto.UpdateItemRequest) (*dto.ItemResponse, error)
-	Delete(ctx context.Context, id string) error
+	SetCurrentUser(ctx context.Context, userID int64) error
+	Create(ctx context.Context, item model.Item) (int64, error)
+	GetAll(ctx context.Context) ([]*model.Item, error)
+	GetByID(ctx context.Context, itemID int64) (*model.Item, error)
+	Update(ctx context.Context, item model.Item) error
+	Delete(ctx context.Context, itemID int64) error
 }

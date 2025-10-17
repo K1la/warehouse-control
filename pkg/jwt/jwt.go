@@ -13,8 +13,9 @@ type JWT struct {
 }
 
 type Claims struct {
-	UserID int64  `json:"user_id"`
-	Role   string `json:"role"`
+	UserID   int64  `json:"user_id"`
+	UserName string `json:"user_name"`
+	Role     string `json:"role"`
 	jwt.RegisteredClaims
 }
 
@@ -22,10 +23,11 @@ func New(secret string, ttl time.Duration) *JWT {
 	return &JWT{secret: secret, ttl: ttl}
 }
 
-func (j *JWT) Generate(userID int64, role string) (string, error) {
+func (j *JWT) Generate(userID int64, userName, role string) (string, error) {
 	c := &Claims{
-		UserID: userID,
-		Role:   role,
+		UserID:   userID,
+		UserName: userName,
+		Role:     role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(j.ttl)),
 		},

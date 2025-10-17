@@ -3,112 +3,73 @@ package items
 import (
 	"context"
 	"fmt"
-	"github.com/K1la/sales-tracker/internal/dto"
-	"github.com/K1la/sales-tracker/internal/model"
-	"time"
+	"github.com/K1la/warehouse-control/internal/dto"
+	"github.com/K1la/warehouse-control/internal/model"
 )
 
-func (s *Service) Create(ctx context.Context, req dto.CreateItem) (*dto.ItemResponse, error) {
-	parsedDate, err := time.Parse(time.DateOnly, req.Date)
+func (s *Service) GetAll(ctx context.Context) ([]*model.Item, error) {
+	items, err := s.db.GetAll(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse date: %w", err)
-	}
-
-	item := model.Item{
-		Type:        req.Type,
-		Amount:      req.Amount,
-		Date:        parsedDate,
-		Category:    req.Category,
-		Description: req.Description,
-	}
-
-	if err = s.db.Create(ctx, &item); err != nil {
 		return nil, err
 	}
 
-	return &dto.ItemResponse{
-		ID:          item.ID,
-		Type:        item.Type,
-		Amount:      item.Amount,
-		Date:        item.Date.Format(time.DateOnly),
-		Category:    item.Category,
-		Description: item.Description,
-		CreatedAt:   item.CreatedAt,
-		UpdatedAt:   item.UpdatedAt,
-	}, nil
+	return items, nil
 }
 
-func (s *Service) GetAll(ctx context.Context, params dto.GetItemsParams) ([]dto.ItemResponse, error) {
-	items, err := s.db.GetAll(ctx, params)
+func (s *Service) GetByID(ctx context.Context, itemID int64) (*model.Item, error) {
+	item, err := s.db.GetByID(ctx, itemID)
 	if err != nil {
-		return nil, err
-	}
-
-	res := make([]dto.ItemResponse, 0, len(items))
-	for _, it := range items {
-		res = append(res, dto.ItemResponse{
-			ID:          it.ID,
-			Type:        it.Type,
-			Amount:      it.Amount,
-			Date:        it.Date,
-			Category:    it.Category,
-			Description: it.Description,
-			CreatedAt:   it.CreatedAt,
-			UpdatedAt:   it.UpdatedAt,
-		})
-	}
-
-	return res, nil
-}
-
-func (s *Service) GetByID(ctx context.Context, id string) (*dto.ItemResponse, error) {
-	item, err := s.db.GetByID(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	return &dto.ItemResponse{
-		ID:          item.ID,
-		Type:        item.Type,
-		Amount:      item.Amount,
-		Date:        item.Date,
-		Category:    item.Category,
-		Description: item.Description,
-		CreatedAt:   item.CreatedAt,
-		UpdatedAt:   item.UpdatedAt,
-	}, nil
-}
-
-func (s *Service) Update(ctx context.Context, id string, req dto.UpdateItem) (*dto.ItemResponse, error) {
-	item, err := s.db.GetByID(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	if req.Type != nil {
-		item.Type = *req.Type
-	}
-	if req.Amount != nil {
-		item.Amount = *req.Amount
-	}
-	if req.Date != nil {
-		item.Date = *req.Date
-	}
-	if req.Category != nil {
-		item.Category = *req.Category
-	}
-	if req.Description != nil {
-		item.Description = *req.Description
-	}
-	item.UpdatedAt = time.Now()
-
-	if err = s.db.Update(ctx, item); err != nil {
 		return nil, err
 	}
 
 	return item, nil
 }
 
-func (s *Service) Delete(ctx context.Context, id string) error {
-	return s.db.Delete(ctx, id)
+func (s *Service) Create(ctx context.Context, userID int64, req dto.CreateItemRequest) (int64, error) {
+	// Set current user.
+	if err := s.db.SetCurrentUser(ctx, userID); err != nil {
+		return -1, fmt.Errorf("set current user: %w", err)
+	}
+
+	item := model.Item{
+		Name:        req.Name,
+		Description: req.Description,
+		Quantity:    int64(req.Quantity),
+	}
+
+	id, err := s.db.Create(ctx, item)
+	if err != nil {
+		return -1, err
+	}
+
+	return id, nil
+}
+
+func (s *Service) Update(ctx context.Context, userID, itemID int64, req dto.UpdateItemRequest) error {
+	// Set current user.
+	if err := s.db.SetCurrentUser(ctx, userID); err != nil {
+		return fmt.Errorf("set current user: %w", err)
+	}
+
+	item := model.Item{
+		ID:          itemID,
+		Name:        req.Name,
+		Description: req.Description,
+		Quantity:    int64(req.Quantity),
+	}
+
+	if err := s.db.Update(ctx, item); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Service) Delete(ctx context.Context, userID, itemID int64) error {
+	// Set current user.
+	if err := s.db.SetCurrentUser(ctx, userID); err != nil {
+		return fmt.Errorf("set current user: %w", err)
+	}
+
+	return s.db.Delete(ctx, itemID)
 }
