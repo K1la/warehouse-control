@@ -8,7 +8,10 @@ import (
 
 func (r *Postgres) ListByID(ctx context.Context, itemID int64) ([]*model.ItemHistory, error) {
 	query := `
-	SELECT id, item_id, action, old_value, new_value, user_id, created_at
+    SELECT id, COALESCE(item_id, 0) AS item_id, action,
+	       COALESCE(old_value::text, '') AS old_value,
+	       COALESCE(new_value::text, '') AS new_value,
+	       user_id, created_at
 	FROM item_history
 	WHERE item_id = $1
 	ORDER BY created_at DESC
@@ -41,7 +44,10 @@ func (r *Postgres) ListByID(ctx context.Context, itemID int64) ([]*model.ItemHis
 
 func (r *Postgres) ListAll(ctx context.Context) ([]*model.ItemHistory, error) {
 	query := `
-	SELECT id, item_id, action, old_value, new_value, user_id, created_at
+    SELECT id, COALESCE(item_id, 0) AS item_id, action,
+	       COALESCE(old_value::text, '') AS old_value,
+	       COALESCE(new_value::text, '') AS new_value,
+	       user_id, created_at
 	FROM item_history
 	ORDER BY created_at DESC
 	`

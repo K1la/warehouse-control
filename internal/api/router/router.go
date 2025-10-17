@@ -37,6 +37,7 @@ func New(itH *itemH.Handler, atH *authH.Handler, auditH *auditH.Handler, authMw 
 
 		// Items routes
 		itemsGroup := api.Group("/items")
+		itemsGroup.Use(authMw.RequireAuth())
 		{
 			itemsGroup.GET("", itH.GetAll)
 			itemsGroup.GET("/:id", itH.GetByID)

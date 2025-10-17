@@ -2,12 +2,12 @@ package middleware
 
 import (
 	"errors"
+	"net/http"
+	"strings"
+
 	jwtpkg "github.com/K1la/warehouse-control/pkg/jwt"
 	"github.com/gin-gonic/gin"
 	"github.com/wb-go/wbf/ginext"
-	"github.com/wb-go/wbf/zlog"
-	"net/http"
-	"strings"
 )
 
 var (
@@ -35,7 +35,6 @@ func (a *AuthMW) RequireAuth() ginext.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, ErrNoToken)
 			return
 		}
-		zlog.Logger.Info().Str("auth", auth).Msg("get header MW")
 
 		parts := strings.SplitN(auth, " ", 2)
 		if len(parts) != 2 || parts[0] != "Bearer" {
@@ -48,8 +47,6 @@ func (a *AuthMW) RequireAuth() ginext.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, err)
 			return
 		}
-
-		zlog.Logger.Info().Interface("claims", claims).Msg("get claims")
 
 		c.Set("user_id", claims.UserID)
 		c.Set("role", claims.Role)
